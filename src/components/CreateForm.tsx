@@ -1,0 +1,272 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Heart, Plus, Trash2, Music, Sparkles, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { saveAlmanaque, generateId, fileToDataUrl, type Moment } from '@/lib/almanaque-store';
+
+const CreateForm: React.FC = () => {
+  const navigate = useNavigate();
+  const [coupleName, setCoupleName] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [musicUrl, setMusicUrl] = useState('');
+  const [finalMessage, setFinalMessage] = useState('');
+  const [moments, setMoments] = useState<(Moment & { file?: File })[]>([
+    { id: generateId(), title: '', text: '', imageUrl: '' },
+  ]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const addMoment = () => {
+    if (moments.length >= 6) return;
+    setMoments([...moments, { id: generateId(), title: '', text: '', imageUrl: '' }]);
+  };
+
+  const removeMoment = (id: string) => {
+    if (moments.length <= 1) return;
+    setMoments(moments.filter(m => m.id !== id));
+  };
+
+  const updateMoment = (id: string, field: string, value: string) => {
+    setMoments(moments.map(m => m.id === id ? { ...m, [field]: value } : m));
+  };
+
+  const handleImageChange = async (id: string, file: File | undefined) => {
+    if (!file) return;
+    const dataUrl = await fileToDataUrl(file);
+    setMoments(moments.map(m => m.id === id ? { ...m, imageUrl: dataUrl, file } : m));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const almanaqueId = generateId();
+      const data = {
+        id: almanaqueId,
+        coupleName,
+        startDate,
+        moments: moments.map(({ file, ...rest }) => rest),
+        finalMessage,
+        musicUrl,
+        createdAt: new Date().toISOString(),
+      };
+
+      saveAlmanaque(data);
+      navigate(`/almanaque/${almanaqueId}`);
+
+      // Simulate image upload delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      handleCheckout();
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCheckout = () => {
+    window.open('https://buy.stripe.com/test_dR69CC4vrbIY9Yk000', '_blank');
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Top bar */}
+      <div className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
+          <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Voltar
+          </Link>
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-4 pt-24 pb-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <Heart className="w-6 h-6 text-primary fill-primary" />
+          </div>
+          <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-3">
+            Crie sua história de amor
+          </h1>
+          <p className="text-base text-muted-foreground font-body max-w-md mx-auto">
+            Preencha as informações abaixo para gerar uma página única e especial.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Couple Info */}
+          <section className="bg-background rounded-2xl p-6 md:p-8 shadow-sm border border-border">
+            <h2 className="text-lg font-display font-semibold text-foreground mb-5 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Sobre vocês
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="coupleName" className="font-body text-foreground text-sm">Nome do casal</Label>
+                <Input
+                  id="coupleName"
+                  placeholder="Ex: Ana & João"
+                  value={coupleName}
+                  onChange={e => setCoupleName(e.target.value)}
+                  required
+                  className="mt-1.5 font-body"
+                />
+              </div>
+              <div>
+                <Label htmlFor="startDate" className="font-body text-foreground text-sm">Data de início</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                  required
+                  className="mt-1.5 font-body"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Moments */}
+          <section className="space-y-4">
+            <div>
+              <h2 className="text-lg font-display font-semibold text-foreground flex items-center gap-2">
+                <Heart className="w-5 h-5 text-primary" />
+                Momentos especiais
+              </h2>
+              <p className="text-sm text-muted-foreground font-body mt-1">
+                Adicione de 1 a 6 momentos marcantes.
+              </p>
+            </div>
+
+            {moments.map((moment, index) => (
+              <div
+                key={moment.id}
+                className="bg-background rounded-2xl p-6 md:p-8 shadow-sm border border-border relative"
+              >
+                <div className="absolute -top-3 left-6 bg-primary text-primary-foreground text-xs font-body font-semibold px-3 py-1 rounded-full">
+                  {index + 1}
+                </div>
+
+                {moments.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeMoment(moment.id)}
+                    className="absolute top-4 right-4 text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+
+                <div className="space-y-4 mt-2">
+                  <div>
+                    <Label className="font-body text-foreground text-sm">Título</Label>
+                    <Input
+                      placeholder="Ex: Nosso primeiro encontro"
+                      value={moment.title}
+                      onChange={e => updateMoment(moment.id, 'title', e.target.value)}
+                      required
+                      className="mt-1.5 font-body"
+                    />
+                  </div>
+                  <div>
+                    <Label className="font-body text-foreground text-sm">Texto curto</Label>
+                    <Textarea
+                      placeholder="Conte um pouco sobre esse momento..."
+                      value={moment.text}
+                      onChange={e => updateMoment(moment.id, 'text', e.target.value)}
+                      required
+                      rows={3}
+                      className="mt-1.5 font-body resize-none"
+                    />
+                  </div>
+                  <div>
+                    <Label className="font-body text-foreground text-sm">Foto</Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleImageChange(moment.id, e.target.files?.[0])}
+                      className="mt-1.5 font-body"
+                    />
+                    {moment.imageUrl && (
+                      <div className="mt-3 w-20 h-20 rounded-xl overflow-hidden border border-border">
+                        <img src={moment.imageUrl} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {moments.length < 6 && (
+              <button
+                type="button"
+                onClick={addMoment}
+                className="w-full py-4 border-2 border-dashed border-border rounded-2xl text-muted-foreground hover:text-primary hover:border-primary transition-colors font-body text-sm flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Adicionar momento
+              </button>
+            )}
+          </section>
+
+          {/* Final Message */}
+          <section className="bg-background rounded-2xl p-6 md:p-8 shadow-sm border border-border">
+            <h2 className="text-lg font-display font-semibold text-foreground mb-2 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Mensagem final
+            </h2>
+            <p className="text-sm text-muted-foreground font-body mb-4">
+              A grande revelação! Escreva sua declaração ou pedido especial.
+            </p>
+            <Textarea
+              placeholder="Ex: Você aceita namorar comigo? 💍"
+              value={finalMessage}
+              onChange={e => setFinalMessage(e.target.value)}
+              required
+              rows={4}
+              className="font-body resize-none"
+            />
+          </section>
+
+          {/* Music */}
+          <section className="bg-background rounded-2xl p-6 md:p-8 shadow-sm border border-border">
+            <h2 className="text-lg font-display font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Music className="w-5 h-5 text-primary" />
+              Música (opcional)
+            </h2>
+            <Input
+              placeholder="Cole o link do YouTube aqui"
+              value={musicUrl}
+              onChange={e => setMusicUrl(e.target.value)}
+              className="font-body"
+            />
+          </section>
+
+          {/* Submit */}
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-6 text-lg font-display font-bold gradient-romantic text-primary-foreground hover:opacity-90 transition-opacity rounded-full shadow-romantic"
+            size="lg"
+          >
+            {isSubmitting ? (
+              <span className="animate-pulse">Criando sua história...</span>
+            ) : (
+              <>
+                <Heart className="w-5 h-5 mr-2 fill-current" />
+                Criar nosso almanaque
+              </>
+            )}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default CreateForm;
