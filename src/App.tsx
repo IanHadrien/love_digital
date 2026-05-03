@@ -7,6 +7,7 @@ import LandingPage from "./pages/LandingPage";
 import Index from "./pages/Index.tsx";
 import AlmanaquePage from "./pages/AlmanaquePage";
 import NotFound from "./pages/NotFound";
+import PaymentPage from "./pages/Payment.tsx";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/" element={<LandingPage />} />
           <Route path="/criar" element={<Index />} />
           <Route path="/almanaque/:id" element={<AlmanaquePage />} />
+          <Route path="/pagamento" element={<PaymentPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

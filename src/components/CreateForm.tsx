@@ -69,7 +69,8 @@ const CreateForm: React.FC = () => {
   };
 
   const handleCheckout = () => {
-    window.open('https://buy.stripe.com/test_dR69CC4vrbIY9Yk000', '_blank');
+    // window.open('https://buy.stripe.com/test_dR69CC4vrbIY9Yk000', '_blank');
+    navigate('/pagamento');
   }
 
   return (
