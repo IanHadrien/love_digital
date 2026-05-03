@@ -73,7 +73,7 @@ const CreateForm: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#fff5f5]">
       {/* Top bar */}
       <div className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
@@ -94,7 +94,7 @@ const CreateForm: React.FC = () => {
             Crie sua história de amor
           </h1>
           <p className="text-base text-muted-foreground font-body max-w-md mx-auto">
-            Preencha as informações abaixo para gerar uma página única e especial.
+            Preencha as informações abaixo e transforme suas memórias em uma página inesquecível para o casal.
           </p>
         </div>
 
@@ -176,7 +176,7 @@ const CreateForm: React.FC = () => {
                   <div>
                     <Label className="font-body text-foreground text-sm">Texto curto</Label>
                     <Textarea
-                      placeholder="Conte um pouco sobre esse momento..."
+                      placeholder="Compartilhe o que tornou esse momento tão especial para vocês...."
                       value={moment.text}
                       onChange={e => updateMoment(moment.id, 'text', e.target.value)}
                       required
@@ -259,7 +259,7 @@ const CreateForm: React.FC = () => {
             ) : (
               <>
                 <Heart className="w-5 h-5 mr-2 fill-current" />
-                Criar nosso almanaque
+                Criar pedido
               </>
             )}
           </Button>
